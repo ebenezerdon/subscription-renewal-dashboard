@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Subscription Renewal Dashboard</title>
+  <meta name="description" content="Track upcoming subscription charges and totals with an elegant dashboard.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+  <body class="antialiased bg-slate-50">
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg">
+            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 7a2 2 0 0 1 2-2h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 17a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 3v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M17 19v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold">Subscription Renewal Dashboard</h1>
+            <p class="text-sm text-slate-500">Keep an eye on upcoming charges and totals</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="add-sub-btn" class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-300 text-white rounded-md text-sm transition-shadow" aria-haspopup="dialog">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="opacity-90"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Add subscription
+          </button>
+          <button id="import-btn" class="px-3 py-2 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-2 focus:ring-slate-300 text-sm">Import</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: Subscriptions List -->
+      <aside class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-medium">Your subscriptions</h2>
+            <div class="text-xs text-slate-500">Total <span id="sub-count">0</span></div>
+          </div>
+          <div class="relative">
+            <input id="search" aria-label="Search subscriptions" placeholder="Search by name" class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+          </div>
+          <ul id="subscriptions-list" class="mt-4 space-y-3" aria-live="polite"></ul>
+          <div class="mt-4 text-xs text-slate-500">Tip: Click a subscription to edit. Use keyboard to navigate list.</div>
+        </div>
+
+        <div class="mt-4 bg-white rounded-lg shadow p-5">
+          <h3 class="text-sm font-medium mb-3">Quick totals</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-indigo-50 rounded-lg">
+              <div class="text-xs text-slate-500">Next 30 days</div>
+              <div id="total-30" class="text-xl font-semibold mt-1">$0.00</div>
+            </div>
+            <div class="p-4 bg-emerald-50 rounded-lg">
+              <div class="text-xs text-slate-500">Estimated monthly</div>
+              <div id="total-month" class="text-xl font-semibold mt-1">$0.00</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right: Upcoming Charges and details -->
+      <section class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="text-lg font-semibold">Upcoming charges</h2>
+            <div class="text-sm text-slate-500">Sorted by date</div>
+          </div>
+
+          <div class="space-y-4">
+            <div id="upcoming-list" class="divide-y divide-slate-100" aria-live="polite"></div>
+            <div id="empty-state" class="text-center text-slate-500 py-16">
+              <p class="mb-3">No upcoming charges. Add a subscription to get started.</p>
+              <button id="empty-add" class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md">Add subscription</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 bg-white rounded-lg shadow p-6">
+          <h3 class="text-sm font-medium mb-3">Projection controls</h3>
+          <div class="flex flex-wrap gap-3 items-center">
+            <label class="text-sm text-slate-600">Projection window</label>
+            <select id="projection-range" class="border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-200">
+              <option value="30">Next 30 days</option>
+              <option value="90">Next 90 days</option>
+              <option value="365">Next 365 days</option>
+            </select>
+            <label class="ml-4 text-sm text-slate-600">Filter</label>
+            <select id="filter-frequency" class="border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-200">
+              <option value="all">All frequencies</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Modal dialog for add/edit -->
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" aria-hidden="true">
+    <div class="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm" data-dismiss="modal"></div>
+    <div class="relative w-full max-w-xl bg-white rounded-lg shadow-lg ring-1 ring-slate-900/5">
+      <form id="sub-form" class="p-6" novalidate>
+        <div class="flex items-start justify-between">
+          <h3 id="modal-title" class="text-lg font-semibold">Add subscription</h3>
+          <button type="button" class="text-slate-500 hover:text-slate-700 focus:outline-none" data-dismiss="modal" aria-label="Close dialog">✕</button>
+        </div>
+        <p class="text-sm text-slate-500 mt-2">Track renewal dates and projected costs.</p>
+
+        <div class="mt-4 grid grid-cols-1 gap-3">
+          <label class="text-sm">Name
+            <input id="name" name="name" required class="mt-1 w-full border border-slate-200 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-200" />
+          </label>
+
+          <label class="text-sm">Amount (USD)
+            <input id="amount" name="amount" inputmode="decimal" required pattern="^\d+(\.\d{1,2})?$" placeholder="9.99" class="mt-1 w-full border border-slate-200 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-200" />
+          </label>
+
+          <label class="text-sm">Start date
+            <input id="start-date" name="startDate" type="date" required class="mt-1 w-full border border-slate-200 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-200" />
+          </label>
+
+          <label class="text-sm">Frequency
+            <select id="frequency" name="frequency" class="mt-1 w-full border border-slate-200 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-200">
+              <option value="monthly">Monthly</option>
+              <option value="weekly">Weekly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </label>
+
+          <div class="flex items-center gap-3 mt-1">
+            <label class="inline-flex items-center gap-2 text-sm"><input id="auto-renew" type="checkbox" class="rounded border-slate-300 focus:ring-indigo-200" checked> Auto renew</label>
+            <label class="inline-flex items-center gap-2 text-sm"><input id="enabled" type="checkbox" class="rounded border-slate-300 focus:ring-indigo-200" checked> Enabled</label>
+          </div>
+        </div>
+
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <button type="button" class="px-3 py-2 rounded-md text-sm bg-slate-100 hover:bg-slate-200" data-dismiss="modal">Cancel</button>
+          <button id="save-sub" type="submit" class="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white">Save subscription</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 pb-12">
+    <div class="text-xs text-slate-500">Built with care. Keyboard friendly and optimized for modern browsers.</div>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="scripts/helpers.js"></script>
+  <script src="scripts/ui.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>
